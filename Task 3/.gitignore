@@ -1,0 +1,5 @@
+# Ignore system and temp files
+*.log
+node_modules/
+.env
+__pycache__/

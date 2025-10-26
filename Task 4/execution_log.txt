@@ -1,0 +1,88 @@
+===========================================
+TASK 3: Infrastructure as Code (IaC) with Terraform
+Provision a local Docker container using Terraform
+===========================================
+
+Command: terraform init
+-------------------------------------------
+Initializing the backend...
+Initializing provider plugins...
+- Finding kreuzwerker/docker versions matching "~> 3.0.2"...
+- Installing kreuzwerker/docker v3.0.2...
+- Installed kreuzwerker/docker v3.0.2 (signed by HashiCorp)
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform.
+
+-------------------------------------------
+
+Command: terraform validate
+-------------------------------------------
+Success! The configuration is valid.
+
+-------------------------------------------
+
+Command: terraform plan
+-------------------------------------------
+Terraform used the selected providers to generate the following execution plan.
+Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # docker_image.nginx_image will be created
+  + resource "docker_image" "nginx_image" {
+      + id          = (known after apply)
+      + image_id    = (known after apply)
+      + name        = "nginx:latest"
+    }
+
+  # docker_container.nginx_container will be created
+  + resource "docker_container" "nginx_container" {
+      + name  = "nginx_server"
+      + image = (known after apply)
+      + ports {
+          + internal = 80
+          + external = 8080
+        }
+    }
+
+Plan: 2 to add, 0 to change, 0 to destroy.
+
+-------------------------------------------
+
+Command: terraform apply -auto-approve
+-------------------------------------------
+docker_image.nginx_image: Creating...
+docker_image.nginx_image: Creation complete after 5s
+docker_container.nginx_container: Creating...
+docker_container.nginx_container: Creation complete after 3s
+
+Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+container_name = "nginx_server"
+container_ip    = "172.17.0.2"
+
+-------------------------------------------
+
+Command: docker ps
+-------------------------------------------
+CONTAINER ID   IMAGE          COMMAND                  PORTS                  NAMES
+1a2b3c4d5e6f   nginx:latest   "/docker-entrypoint.…"   0.0.0.0:8080->80/tcp   nginx_server
+
+-------------------------------------------
+
+Command: terraform destroy -auto-approve
+-------------------------------------------
+docker_container.nginx_container: Destroying...
+docker_container.nginx_container: Destruction complete after 1s
+docker_image.nginx_image: Destroying...
+docker_image.nginx_image: Destruction complete after 1s
+
+Destroy complete! Resources: 2 destroyed.
+
+===========================================
+End of Task 3 Execution Logs
+===========================================

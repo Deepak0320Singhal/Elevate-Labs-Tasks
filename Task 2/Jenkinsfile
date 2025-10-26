@@ -1,0 +1,58 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = "jenkins-pipeline-demo"
+        DOCKERHUB_USER = "<YOUR_DOCKERHUB_USERNAME>"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/<YOUR_USERNAME>/jenkins-pipeline-demo.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'docker build -t $DOCKERHUB_USER/$IMAGE_NAME:latest .'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh '''
+                    docker run -d --name test-app -p 3000:3000 $DOCKERHUB_USER/$IMAGE_NAME:latest
+                    sleep 3
+                    curl -f http://localhost:3000/health
+                    docker stop test-app && docker rm test-app
+                '''
+            }
+        }
+
+        stage('Push') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
+                    sh '''
+                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                        docker push $DOCKERHUB_USER/$IMAGE_NAME:latest
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh '''
+                    docker rm -f deployed-app || true
+                    docker run -d --name deployed-app -p 8081:3000 $DOCKERHUB_USER/$IMAGE_NAME:latest
+                '''
+            }
+        }
+    }
+
+    post {
+        success { echo '✅ Pipeline Completed Successfully!' }
+        failure { echo '❌ Pipeline Failed!' }
+    }
+}
